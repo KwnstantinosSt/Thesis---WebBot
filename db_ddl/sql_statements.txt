@@ -1,0 +1,7 @@
+## Sql statements for getting data
+
+## Get bots urls and links
+
+select b.id as bot_id,bu.urls_id as urls_id,u.url,l.link
+from bots b inner join bots_urls bu on (b.id = bu.bots_id) inner join urls u on (bu.urls_id = u.id) inner join links l on (l.urls_id = bu.urls_id)
+order by bot_id,urls_id

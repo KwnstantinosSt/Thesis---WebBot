@@ -1,0 +1,114 @@
+CREATE TABLE bots(
+	id integer auto_increment,
+    bot_method varchar(255),
+    bot_depth integer,
+    bot_status varchar(255),
+    bot_start_time varchar(255),
+    bot_end_time varchar(255),
+    primary key(id)
+);
+
+CREATE TABLE urls(
+	id integer auto_increment,
+	url varchar(255) unique,
+    url_title varchar(255),
+    url_size real,
+    url_status bool,
+    url_access_time varchar(255),
+    url_modification_time varchar(255),
+    primary key(id)
+);
+
+CREATE TABLE bots_urls(
+	urls_id integer ,
+    bots_id integer,
+    primary key(urls_id,bots_id),
+    foreign key(bots_id) references bots(id)  on delete cascade on update cascade,
+	foreign key(urls_id) references urls(id)  on delete cascade on update cascade
+);
+
+
+CREATE TABLE links(
+	id integer auto_increment,
+    urls_id integer,
+    link varchar(255),
+    link_title varchar(255),
+    width real,
+    height real,
+    color varchar(255),
+    x real,
+    y real,
+    font_size real,
+    font_name varchar(255),
+    font_attrs varchar(255),
+    primary key(id),
+    foreign key(urls_id) references urls(id) on delete cascade on update cascade
+);
+
+CREATE TABLE logs(
+	id integer auto_increment,
+	bId integer,
+	status varchar(255),
+    message text,
+    errors varchar(255) default null,
+    last_action_time timestamp default current_timestamp,
+    primary key(id)
+);
+
+
+
+Delimiter //
+CREATE TRIGGER insert_bot_table
+AFTER INSERT on bots
+for each row
+begin
+INSERT INTO logs (bId,status,message)
+values (new.id, new.bot_status, concat("INFO: ", "Initialized new bot with id: ", new.id));
+end //
+delimiter ;
+
+Delimiter //
+CREATE TRIGGER update_bot_table
+AFTER UPDATE on bots
+for each row
+begin
+INSERT INTO logs (bId,status,message)
+values (new.id, new.bot_status, concat("INFO: ", "Updated bot new status!"));
+end //
+delimiter ;
+
+Delimiter //
+CREATE TRIGGER insert_url_table
+AFTER INSERT on urls
+for each row
+begin
+DECLARE i INT;
+select id into @i from bots order by id desc limit 1 ;
+INSERT INTO logs (bId,status,message)
+values (@i, "INSERT URL", concat("INFO: ", "Bot inserted new url with url_id: ", new.id));
+end //
+delimiter ;
+
+
+Delimiter //
+CREATE TRIGGER insert_links_table
+AFTER INSERT on links
+for each row
+begin
+DECLARE i INT;
+select id into @i from bots order by id desc limit 1 ;
+INSERT INTO logs (bId,status,message)
+values (@i, "INSERT LINK", concat("INFO: ", "Bot inserted new link with link_id: ", new.id));
+end //
+delimiter ;
+
+
+Delimiter //
+CREATE TRIGGER insert_bots_urls_table
+AFTER INSERT on bots_urls
+for each row
+begin
+INSERT INTO logs (bId,status,message)
+values (new.bots_id, "INSERT RELATION", concat("INFO: ", "Bot inserted new relation with urls_id: ", new.urls_id, " and bot_id: " , new.bots_id));
+end //
+delimiter ;
